@@ -1,0 +1,193 @@
+
+Rules:
+
+– Always prefer simple solutions  
+– Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality  
+– Write code that takes into account the different environments: dev, test, and prod  
+– You are careful to only make changes that are requested or you are confident are well understood and related to the change being requested  
+– When fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we don’t have duplicate logic.  
+– Keep the codebase very clean and organized  
+– Avoid writing scripts in files if possible, especially if the script is likely only to be run once  
+– Avoid having files over 200–300 lines of code. Refactor at that point.  
+– Mocking data is only needed for tests, never mock data for dev or prod  
+– Never add stubbing or fake data patterns to code that affects the dev or prod environments  
+– Never overwrite my .env file without first asking and confirming
+
+
+Project Specific Rules:
+KEY RULE:
+The rules outlined below will be the finished project. However, do not move on to further steps until I tell you to do so. I want to implement small features at a time to ensure everything is working.
+R1: Modular Design
+
+Always separate code into distinct modules: main.py, timer_engine.py, video_handler.py, ui_components.py, data_manager.py
+Each module should have a single, clear responsibility
+Use imports to connect modules, never put everything in one file
+
+R2: Error Handling Priority
+
+Every camera operation must have try/catch blocks with fallback behavior
+All file operations must handle permissions errors and disk space issues
+Timer operations must continue even if video fails
+Always provide user feedback when something fails
+
+R3: Threading Architecture
+
+Camera capture must run in its own thread
+Each individual timer must run in its own thread
+UI updates must happen in the main thread only
+Use thread-safe data structures for sharing timer data
+
+Timing System Rules
+R4: Precision Requirements
+
+Use time.perf_counter() for all timing measurements (not time.time())
+Display times to millisecond precision (format: MM:SS.mmm)
+Store internal times as floating-point seconds for maximum precision
+Update timer displays at minimum 10Hz (every 100ms)
+
+R5: Timer State Management
+
+Each timer must have states: READY, RUNNING, STOPPED, PAUSED
+Timers can be started/stopped independently
+Support "mass start" and "mass stop" functionality
+Allow reset of individual timers or all timers
+
+R6: Data Integrity
+
+Always record start time, stop time, and elapsed time separately
+Never calculate elapsed time only from display values
+Maintain timer history for each athlete throughout session
+Auto-save timer data every 30 seconds to prevent data loss
+
+Video Processing Rules
+R7: Camera Management
+
+Always check if camera is available before attempting access
+Provide fallback UI mode if no camera detected
+Release camera resources properly when closing app
+Support multiple camera selection if available
+
+R8: Video Overlay Standards
+
+Timer text must be readable: minimum 24px font, white text with black outline
+Position timers to avoid central action area of frame
+Allow user to toggle timer overlay visibility
+Overlay athlete names/numbers near their respective timers
+
+R9: Performance Optimization
+
+Limit video resolution to 640x480 for demo (prioritize performance over quality)
+Target 15-30 FPS, drop frames if necessary to maintain timing precision
+Never let video processing block timer updates
+Implement frame skipping if system can't keep up
+
+User Interface Rules
+R10: Intuitive Layout
+
+Timer controls must be large enough for quick access during events
+Use color coding: Green (ready/go), Red (stop), Yellow (paused)
+Display all active timers prominently on main screen
+Provide clear visual feedback for all button presses
+
+R11: Keyboard Shortcuts
+
+Implement spacebar for mass start/stop
+Number keys (1-9) for individual timer start/stop
+'R' key for reset all timers
+'S' key for save current results
+
+R12: Accessibility
+
+All buttons must be minimum 40x40 pixels
+Provide keyboard navigation for all functions
+Use high contrast colors for timer displays
+Include tooltips for all controls
+
+Data Management Rules
+R13: Export Standards
+
+Default export format: CSV with columns (Athlete, Lane, Start_Time, Finish_Time, Total_Time)
+Include session metadata: date, event type, weather conditions
+Allow export of individual splits/laps if implemented
+Provide both detailed and summary export options
+
+R14: File Management
+
+Create unique session folders with timestamp naming
+Save raw timing data separately from processed results
+Implement auto-backup of critical timing data
+Allow user to specify save location
+
+R15: Data Validation
+
+Validate all athlete names/numbers for uniqueness
+Check for reasonable time ranges (no negative times, no impossibly fast times)
+Flag potential data entry errors for review
+Maintain data integrity checks throughout session
+
+Code Quality Rules
+R16: Documentation Standards
+
+Every function must have a docstring explaining purpose and parameters
+Include inline comments for complex timing calculations
+Provide usage examples in module headers
+Document all keyboard shortcuts and UI interactions
+
+R17: Variable Naming Conventions
+
+Use descriptive names: athlete_finish_times not aft
+Timer variables: timer_1_start_time, timer_1_elapsed_time
+Boolean variables: is_timer_running, has_camera_access
+Constants in ALL_CAPS: MAX_TIMERS = 8
+
+R18: Configuration Management
+
+Create a config section at top of main.py for easy adjustments
+Include settings for: max timers, video resolution, update frequency
+Allow modification without changing core code
+Provide sensible defaults for all configuration options
+
+Testing and Validation Rules
+R19: Essential Test Cases
+
+Must work without camera connected
+Must handle system sleep/wake cycles gracefully
+Must maintain timing accuracy during high CPU load
+Must save data even if app crashes during event
+
+R20: Demo Constraints
+
+Limit to maximum 8 simultaneous timers for demo
+Include sample data generation for testing
+Provide "simulation mode" for development without camera
+Include performance monitoring displays for debugging
+
+Error Recovery Rules
+R21: Graceful Degradation
+
+If camera fails, continue with timer-only mode
+If one timer fails, others must continue operating
+If export fails, retry with simplified format
+Always preserve timing data as top priority
+
+R22: User Communication
+
+Display clear status messages for all operations
+Show warning dialogs before destructive actions (reset, clear data)
+Provide progress indicators for long operations (video processing, export)
+Include helpful error messages with suggested solutions
+
+Platform Compatibility Rules
+R23: Cross-Platform Considerations
+
+Use forward slashes in file paths with os.path.join()
+Test font rendering on different operating systems
+Handle different camera drivers and capabilities
+Account for varying screen resolutions and DPI settings
+
+R24: Resource Management
+
+Always use context managers (with statements) for file operations
+Properly release camera and thread resources on exit
+Implement cleanup functions called on app termination
+Monitor memory usage and implement cleanup routines if needed

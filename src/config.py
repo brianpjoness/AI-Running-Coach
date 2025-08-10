@@ -1,5 +1,5 @@
 from typing import Dict
-from .models import DistanceConfig, RaceDistance, ExperienceLevel
+from .models import DistanceConfig, RaceDistance, ExperienceLevel, TrainingZone
 
 
 # Distance-specific training configurations based on energy system demands

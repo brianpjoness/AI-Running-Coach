@@ -1,226 +1,218 @@
-# RunningCoachAI 🏃‍♂️
+# AI Running Training Plan Generator
 
-An AI-powered fitness coaching system that generates personalized training plans based on user goals, personal records, weekly mileage, and other factors. The system can also modify training plans based on user progress and performance.
+A scientific, evidence-based training plan generator that follows the principles outlined in the `.cursorrules` file, including periodization, progressive overload, and injury prevention.
 
-## Features
+## 🏃‍♀️ Features
 
-### 🎯 **Personalized Training Plans**
-- Generate custom training plans based on user profile
-- Support for different goals: distance building, speed improvement, weight loss, general fitness, race preparation
-- Experience-level appropriate training (beginner, intermediate, advanced, elite)
-- Progressive overload with proper build and taper phases
+- **Scientific Foundation**: Based on peer-reviewed research and coaching principles
+- **80/20 Polarized Training**: Follows the proven 80% easy, 20% hard training model
+- **Periodization**: Implements Base → Build → Peak → Taper progression
+- **Individual Customization**: Adapts to experience level, target distance, and preferences
+- **Injury Prevention**: Built-in 10% rule and recovery week scheduling
+- **Multiple Distances**: Supports 1 Mile, 5K, 10K, Half Marathon, and Marathon training
 
-### 📊 **Progress Tracking**
-- Log completed workout sessions
-- Track actual vs. planned performance
-- Monitor effort levels and pace improvements
-- Calculate completion rates and performance trends
+## 🧬 Scientific Principles
 
-### 🤖 **AI-Powered Plan Modification**
-- Analyze recent workout performance
-- Automatically adjust training plans based on progress
-- Reduce intensity if struggling, increase if performing well
-- Maintain training consistency and prevent overtraining
+### Training Zones & Intensity Distribution
+- **Zone 1-2 (80% of training)**: Aerobic base development, fat oxidation
+- **Zone 4-5 (20% of training)**: VO2 max and lactate threshold development
+- **Zone 3 (minimized)**: The "gray zone" - too hard for easy days, too easy for hard days
 
-### 👤 **User Profile Management**
-- Comprehensive user profiles with personal records
-- Track injuries, preferences, and training history
-- Support for multiple goals and target races
-- Experience-based training recommendations
+### Periodization Model
+- **Base Phase**: Aerobic foundation, musculoskeletal durability
+- **Build Phase**: Increasing training stress, race-specific preparation
+- **Peak Phase**: Race-specific training, performance optimization
+- **Taper Phase**: Volume reduction, performance peaking
 
-## Installation
+### Injury Prevention
+- **10% Rule**: Maximum weekly mileage increase
+- **Recovery Weeks**: Scheduled every 3-5 weeks based on experience level
+- **Progressive Overload**: Systematic training stress progression
+- **Strength Training**: Integrated 2-3 times per week
 
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
+## 🚀 Quick Start
 
-### Setup Instructions
+### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd RunningCoachAI
-   ```
+```bash
+# Clone the repository
+git clone <repository-url>
+cd RunningCoachAI
 
-2. **Create a virtual environment (recommended)**
-   ```bash
-   python -m venv venv
-   
-   # On Windows
-   venv\Scripts\activate
-   
-   # On macOS/Linux
-   source venv/bin/activate
-   ```
+# No external dependencies required!
+python main.py
+```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Basic Usage
 
-4. **Run the application**
-   ```bash
-   python main.py
-   ```
+```python
+from datetime import date
+from src.models import RunnerProfile, RaceDistance, ExperienceLevel
+from src.plan_generator import TrainingPlanGenerator
+from src.formatter import TrainingPlanFormatter
 
-## Usage
+# Create runner profile
+profile = RunnerProfile(
+    experience_level=ExperienceLevel.INTERMEDIATE,
+    target_distance=RaceDistance.HALF_MARATHON,
+    peak_race_date=date(2024, 6, 15),
+    weekly_mileage_target=35,
+    days_per_week=5
+)
 
-### Getting Started
+# Generate training plan
+generator = TrainingPlanGenerator()
+plan = generator.generate_plan(profile)
 
-1. **Launch the application**
-   ```bash
-   python main.py
-   ```
+# Format and display
+formatter = TrainingPlanFormatter()
+print(formatter.format_plan_summary(plan))
+```
 
-2. **Create a new profile**
-   - Select option 2 to create a new profile
-   - Enter your personal information (name, age, weight, height)
-   - Select your running experience level
-   - Enter your current weekly mileage
-   - Choose your running goals
-   - Optionally add personal records and target races
+### Interactive Mode
 
-3. **Generate a training plan**
-   - Select option 2 from the main menu
-   - Choose plan duration (4-16 weeks)
-   - Optionally specify target weekly mileage
-   - The AI will generate a personalized plan
+```bash
+python main.py
+```
 
-4. **Log your workouts**
-   - Use option 3 to log completed workout sessions
-   - Track actual distance, duration, pace, and effort level
-   - Add notes about how the workout felt
+Follow the prompts to create your personalized training plan.
 
-5. **Monitor progress**
-   - View your training progress with option 4
-   - See recent workout sessions and performance trends
+### Example Plans
 
-6. **Modify your plan**
-   - Use option 5 to have the AI adjust your training plan
-   - Plans are modified based on your recent performance
-   - Adjustments help maintain optimal training load
+```bash
+python main.py examples
+```
 
-### Example User Journey
+View example training plans for different distances and experience levels.
 
-1. **Sarah** is a beginner runner who wants to complete her first 5K
-   - Creates profile: 28 years old, beginner level, currently running 5 miles/week
-   - Goal: Race preparation for a 5K in 8 weeks
-   - AI generates a 8-week plan building from 5 to 15 miles/week
+## 📊 Supported Distances
 
-2. **Mike** is an intermediate runner training for a marathon
-   - Creates profile: 35 years old, intermediate level, currently running 25 miles/week
-   - Goal: Race preparation for a marathon in 16 weeks
-   - AI generates a 16-week plan with proper build and taper phases
+| Distance | Training Weeks | Key Focus | Energy System |
+|----------|----------------|-----------|---------------|
+| 1 Mile | 8-12 weeks | Neuromuscular power | 85% aerobic, 15% anaerobic |
+| 5K | 10-16 weeks | VO2 max development | 92.5% aerobic, 7.5% anaerobic |
+| 10K | 12-18 weeks | Lactate threshold | 96% aerobic, 4% anaerobic |
+| Half Marathon | 14-20 weeks | Aerobic threshold | 97.5% aerobic, 2.5% anaerobic |
+| Marathon | 16-24 weeks | Metabolic efficiency | 98.5% aerobic, 1.5% anaerobic |
 
-3. **Lisa** is an advanced runner looking to improve her 10K time
-   - Creates profile: 42 years old, advanced level, currently running 40 miles/week
-   - Goal: Time improvement for 10K
-   - AI generates a plan with more tempo runs and interval training
+## 🎯 Experience Level Adjustments
 
-## Project Structure
+### Beginner (< 1 year running)
+- **Mileage Increase**: 5% weekly (conservative)
+- **Max Mileage**: 80% of target
+- **Recovery Weeks**: Every 3rd week
+- **Base Phase**: +2 weeks extension
+
+### Intermediate (1-3 years running)
+- **Mileage Increase**: 8% weekly
+- **Max Mileage**: 90% of target
+- **Recovery Weeks**: Every 4th week
+- **Base Phase**: +1 week extension
+
+### Advanced (3+ years running)
+- **Mileage Increase**: 10% weekly
+- **Max Mileage**: 100% of target
+- **Recovery Weeks**: Every 5th week
+- **Base Phase**: Standard duration
+
+## 📋 Training Plan Structure
+
+### Weekly Schedule
+- **Long Run**: 15-35% of weekly mileage (distance-dependent)
+- **Easy Runs**: 60-80% of weekly mileage
+- **Quality Sessions**: 20% of weekly mileage (tempo, intervals, hills)
+- **Rest Days**: Integrated based on training days preference
+
+### Workout Types
+- **Easy Run**: Conversational pace, Zone 2
+- **Long Run**: Steady pace, Zone 2, practice nutrition
+- **Tempo Run**: Lactate threshold pace, Zone 4
+- **Intervals**: VO2 max development, Zone 5
+- **Strides**: Neuromuscular coordination, Zone 4
+- **Hills**: Strength and form, Zone 4
+- **Race Pace**: Specific pace practice, Zone 4
+- **Recovery**: Very easy pace, Zone 1
+- **Rest**: Complete rest or light activity
+
+## 💪 Strength Training Integration
+
+### Recommended Frequency
+- **Beginner**: 2 days per week
+- **Intermediate**: 2 days per week
+- **Advanced**: 3 days per week
+
+### Focus Areas
+- Hip abductors and extensors
+- Core stability
+- Single-leg exercises
+- Posterior chain strengthening
+
+### Timing
+- On non-running days
+- After easy runs
+- Before quality sessions (light activation)
+
+## 🔄 Recovery & Adaptation
+
+### Recovery Guidelines
+- **Sleep**: 8+ hours per night
+- **Nutrition**: Post-workout within 30-60 minutes
+- **Active Recovery**: Light movement preferred over complete rest
+- **Monitoring**: Track resting heart rate, sleep quality, energy levels
+
+### Adaptation Timeline
+- **Cardiovascular**: 1-4 weeks
+- **Mitochondrial**: 4-8 weeks
+- **Metabolic**: 8-12 weeks
+- **Supercompensation**: 7-day cycle
+
+## 📁 Project Structure
 
 ```
 RunningCoachAI/
 ├── main.py                 # Main application entry point
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Dependencies (minimal)
 ├── README.md              # This file
-├── src/                   # Source code
-│   ├── __init__.py        # Package initialization
-│   ├── models.py          # Data models and enums
-│   ├── database.py        # Database operations
-│   ├── ai_coach.py        # AI training plan generation
-│   └── cli_interface.py   # Command-line interface
-└── venv/                  # Virtual environment (created during setup)
+├── .cursorrules           # Scientific principles and coding guidelines
+└── src/
+    ├── __init__.py        # Package initialization
+    ├── models.py          # Data models and enums
+    ├── config.py          # Training configurations
+    ├── plan_generator.py  # Core training plan generation logic
+    └── formatter.py       # Plan formatting and export
 ```
 
-## Core Components
+## 🧪 Scientific References
 
-### Data Models (`src/models.py`)
-- `UserProfile`: User information, goals, personal records
-- `TrainingPlan`: Complete training plans with weeks and workouts
-- `WorkoutSession`: Completed workout data
-- `ProgressMetrics`: Performance tracking metrics
+The training principles implemented in this generator are based on:
 
-### Database Manager (`src/database.py`)
-- SQLite database for data persistence
-- CRUD operations for all data models
-- Automatic database initialization
+1. **Polarized Training Model**: Seiler & Tønnessen (2009)
+2. **Periodization**: Bompa & Haff (2009)
+3. **Injury Prevention**: Nielsen et al. (2012)
+4. **Recovery Science**: Kellmann & Beckmann (2018)
+5. **Distance-Specific Training**: Daniels (2013)
 
-### AI Coach (`src/ai_coach.py`)
-- Training plan generation algorithms
-- Performance analysis and plan modification
-- Experience-level appropriate training templates
-- Progressive overload and taper calculations
+## 🤝 Contributing
 
-### CLI Interface (`src/cli_interface.py`)
-- User-friendly command-line interface
-- Profile creation and management
-- Training plan generation and viewing
-- Workout logging and progress tracking
+This project follows the coding guidelines outlined in `.cursorrules`:
 
-## Training Plan Features
+- Prefer simple solutions
+- Avoid code duplication
+- Keep files under 200-300 lines
+- Follow scientific principles
+- Maintain clean, organized codebase
 
-### Workout Types
-- **Easy Run**: Conversational pace, building endurance
-- **Tempo Run**: Threshold pace, improving lactate threshold
-- **Intervals**: Speed work, improving VO2 max
-- **Long Run**: Steady pace, building endurance
-- **Recovery**: Very easy pace, active recovery
-- **Cross Training**: Alternative activities (cycling, swimming)
-- **Rest**: Complete rest or light stretching
+## 📄 License
 
-### Plan Progression
-- **Build Phase** (70% of plan): Gradual mileage increase
-- **Peak Phase** (10% of plan): Maximum training load
-- **Taper Phase** (20% of plan): Reduced volume, maintained intensity
+This project is designed for educational and personal use. The scientific principles are based on established research in exercise physiology and coaching methodology.
 
-### Experience Level Adjustments
-- **Beginner**: 3-4 workouts/week, focus on consistency
-- **Intermediate**: 4-5 workouts/week, balanced training
-- **Advanced**: 5-6 workouts/week, specialized training
-- **Elite**: 6+ workouts/week, high-volume training
+## 🆘 Support
 
-## Future Enhancements
-
-### Planned Features
-- **Web Interface**: Modern web UI for better user experience
-- **Mobile App**: iOS/Android app for on-the-go tracking
-- **Social Features**: Connect with other runners, share achievements
-- **Weather Integration**: Adjust training based on weather conditions
-- **Injury Prevention**: AI-powered injury risk assessment
-- **Nutrition Guidance**: Meal planning and hydration recommendations
-- **Race Predictions**: Performance predictions based on training data
-
-### Technical Improvements
-- **Machine Learning**: More sophisticated performance analysis
-- **API Integration**: Connect with fitness trackers and apps
-- **Cloud Storage**: Multi-device synchronization
-- **Real-time Coaching**: Instant feedback and adjustments
-
-## Contributing
-
-We welcome contributions! Please feel free to submit issues, feature requests, or pull requests.
-
-### Development Setup
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-If you encounter any issues or have questions:
-1. Check the documentation in this README
-2. Look for existing issues in the repository
-3. Create a new issue with detailed information
+For questions or issues:
+1. Check the example plans: `python main.py examples`
+2. Review the help: `python main.py help`
+3. Examine the scientific principles in `.cursorrules`
 
 ---
 
-**Happy Running! 🏃‍♂️💪**
-
-*RunningCoachAI - Your AI-powered running companion*
+**Disclaimer**: This training plan generator provides general guidance based on scientific principles. Individual responses to training vary, and runners should consult with healthcare professionals before beginning any training program, especially if they have pre-existing medical conditions.

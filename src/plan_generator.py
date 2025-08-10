@@ -111,7 +111,14 @@ class TrainingPlanGenerator:
         for phase_name, weeks in phase_breakdown.items():
             cumulative_weeks += weeks
             if week_num <= cumulative_weeks:
-                return TrainingPhase(phase_name)
+                # Map phase names to enum values
+                phase_mapping = {
+                    "BASE": TrainingPhase.BASE,
+                    "BUILD": TrainingPhase.BUILD,
+                    "PEAK": TrainingPhase.PEAK,
+                    "TAPER": TrainingPhase.TAPER
+                }
+                return phase_mapping.get(phase_name, TrainingPhase.TAPER)
         return TrainingPhase.TAPER  # Fallback
     
     def _calculate_weekly_mileage(self, week_num: int, current_mileage: float, 

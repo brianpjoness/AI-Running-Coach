@@ -1,0 +1,10 @@
+# AI Running Training Plan Generator
+# Minimal dependencies for scientific training plan generation
+
+# Core Python packages (usually included with Python)
+# No external dependencies required for basic functionality
+
+# Optional dependencies for enhanced functionality:
+# matplotlib>=3.5.0  # For training plan visualization
+# pandas>=1.3.0      # For data analysis and export
+# openpyxl>=3.0.0    # For Excel export functionality
