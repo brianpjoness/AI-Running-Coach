@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 import time
 import threading
+import cv2
+from PIL import Image, ImageTk
+import os
+from datetime import datetime
 
 class Timer:
     def __init__(self, parent, timer_id, parent_app):
@@ -199,18 +203,24 @@ class Timer:
 class MultiTimerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Multi Timer")
-        self.root.geometry("900x700")
+        self.root.title("Multi Timer with Video Recording")
+        self.root.geometry("1200x800")
         
         # Timer management
         self.timers = []
         self.max_timers = 10
+        
+        # Video recorder
+        self.video_recorder = VideoRecorder(self)
         
         # Create GUI elements
         self.setup_ui()
         
         # Add the first timer
         self.add_timer()
+        
+        # Bind window close event
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         
     def setup_ui(self):
         # Main frame
@@ -219,7 +229,7 @@ class MultiTimerApp:
         
         # Top controls frame
         controls_frame = ttk.Frame(main_frame)
-        controls_frame.grid(row=0, column=0, pady=(0, 5), sticky=(tk.W, tk.E))
+        controls_frame.grid(row=0, column=0, columnspan=2, pady=(0, 5), sticky=(tk.W, tk.E))
         
         # Add timer button
         self.add_button = ttk.Button(controls_frame, text="+", command=self.add_timer, width=3)
@@ -227,11 +237,27 @@ class MultiTimerApp:
         
         # Timer count label
         self.timer_count_label = ttk.Label(controls_frame, text="Timers: 1/10")
-        self.timer_count_label.grid(row=0, column=1)
+        self.timer_count_label.grid(row=0, column=1, padx=(0, 20))
+        
+        # Video controls
+        video_controls_frame = ttk.LabelFrame(controls_frame, text="Video Recording", padding="5")
+        video_controls_frame.grid(row=0, column=2, padx=(0, 10))
+        
+        # Video recording button
+        self.record_button = ttk.Button(video_controls_frame, text="🔴", command=self.toggle_recording, width=3)
+        self.record_button.grid(row=0, column=0, padx=2)
+        
+        # Recording status label
+        self.recording_status = ttk.Label(video_controls_frame, text="●", foreground="red")
+        self.recording_status.grid(row=0, column=1, padx=10)
+        
+        # Create left panel for timers
+        left_panel = ttk.Frame(main_frame)
+        left_panel.grid(row=1, column=0, pady=(0, 5), sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 5))
         
         # Create a canvas with scrollbar for timers
-        canvas_frame = ttk.Frame(main_frame)
-        canvas_frame.grid(row=1, column=0, pady=(0, 5), sticky=(tk.W, tk.E, tk.N, tk.S))
+        canvas_frame = ttk.Frame(left_panel)
+        canvas_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         self.canvas = tk.Canvas(canvas_frame, height=400)
         scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.canvas.yview)
@@ -245,9 +271,21 @@ class MultiTimerApp:
         # Create window in canvas for timers frame
         self.canvas_window = self.canvas.create_window((0, 0), window=self.timers_frame, anchor="nw")
         
-        # Split history display (smaller, at bottom)
+        # Create right panel for video preview
+        right_panel = ttk.Frame(main_frame)
+        right_panel.grid(row=1, column=1, pady=(0, 5), sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        # Video preview frame
+        preview_frame = ttk.LabelFrame(right_panel, text="Video Preview", padding="5")
+        preview_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        # Video preview label
+        self.preview_label = ttk.Label(preview_frame, text="No Video Feed", relief="solid", borderwidth=1)
+        self.preview_label.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        # Split history display (spans both columns)
         history_frame = ttk.LabelFrame(main_frame, text="Split History", padding="3")
-        history_frame.grid(row=2, column=0, pady=(5, 0), sticky=(tk.W, tk.E, tk.N, tk.S))
+        history_frame.grid(row=2, column=0, columnspan=2, pady=(5, 0), sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # Create a compact scrollable text widget for split history
         self.split_history = tk.Text(history_frame, height=8, width=120, font=("Consolas", 8))
@@ -260,16 +298,34 @@ class MultiTimerApp:
         # Configure grid weights
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(0, weight=1)
+        main_frame.columnconfigure(0, weight=2)  # Timers panel
+        main_frame.columnconfigure(1, weight=1)  # Video panel
         main_frame.rowconfigure(1, weight=1)
+        left_panel.columnconfigure(0, weight=1)
+        left_panel.rowconfigure(0, weight=1)
         canvas_frame.columnconfigure(0, weight=1)
         canvas_frame.rowconfigure(0, weight=1)
+        right_panel.columnconfigure(0, weight=1)
+        right_panel.rowconfigure(0, weight=1)
+        preview_frame.columnconfigure(0, weight=1)
+        preview_frame.rowconfigure(0, weight=1)
         history_frame.columnconfigure(0, weight=1)
         history_frame.rowconfigure(0, weight=1)
         
         # Bind canvas resize
         self.timers_frame.bind("<Configure>", self.on_frame_configure)
         self.canvas.bind("<Configure>", self.on_canvas_configure)
+        
+    def toggle_recording(self):
+        """Toggle video recording on/off"""
+        if not self.video_recorder.is_recording:
+            self.video_recorder.start_recording()
+            self.record_button.config(text="⏹")
+            self.recording_status.config(text="●", foreground="red")
+        else:
+            self.video_recorder.stop_recording()
+            self.record_button.config(text="🔴")
+            self.recording_status.config(text="●", foreground="gray")
         
     def on_frame_configure(self, event=None):
         """Update canvas scroll region when frame size changes"""
@@ -398,6 +454,130 @@ class MultiTimerApp:
             
             # Move timer to new position
             timer.timer_frame.grid(row=row, column=col, padx=3, pady=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+    def on_closing(self):
+        """Handle application closing"""
+        # Stop video recording if active
+        if self.video_recorder.is_recording:
+            self.video_recorder.stop_recording()
+        
+        # Close the application
+        self.root.destroy()
+
+class VideoRecorder:
+    def __init__(self, parent_app):
+        self.parent_app = parent_app
+        self.is_recording = False
+        self.cap = None
+        self.video_writer = None
+        self.recording_thread = None
+        self.preview_thread = None
+        self.stop_preview = False
+        
+        # Video settings
+        self.fps = 30
+        self.frame_width = 640
+        self.frame_height = 480
+        
+        # Create video directory
+        self.video_dir = "recordings"
+        if not os.path.exists(self.video_dir):
+            os.makedirs(self.video_dir)
+            
+    def start_recording(self):
+        """Start video recording"""
+        if self.is_recording:
+            return
+            
+        # Initialize camera
+        self.cap = cv2.VideoCapture(0)  # Use default webcam
+        if not self.cap.isOpened():
+            print("Error: Could not open webcam")
+            return
+            
+        # Set camera properties
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
+        self.cap.set(cv2.CAP_PROP_FPS, self.fps)
+        
+        # Create video filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"recording_{timestamp}.mp4"
+        filepath = os.path.join(self.video_dir, filename)
+        
+        # Initialize video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        self.video_writer = cv2.VideoWriter(filepath, fourcc, self.fps, (self.frame_width, self.frame_height))
+        
+        self.is_recording = True
+        
+        # Start recording thread
+        self.recording_thread = threading.Thread(target=self._record_video)
+        self.recording_thread.daemon = True
+        self.recording_thread.start()
+        
+        # Start preview thread
+        self.stop_preview = False
+        self.preview_thread = threading.Thread(target=self._update_preview)
+        self.preview_thread.daemon = True
+        self.preview_thread.start()
+        
+        print(f"Started recording: {filepath}")
+        
+    def stop_recording(self):
+        """Stop video recording"""
+        if not self.is_recording:
+            return
+            
+        self.is_recording = False
+        self.stop_preview = True
+        
+        # Wait for threads to finish
+        if self.recording_thread:
+            self.recording_thread.join(timeout=1)
+        if self.preview_thread:
+            self.preview_thread.join(timeout=1)
+            
+        # Release resources
+        if self.video_writer:
+            self.video_writer.release()
+        if self.cap:
+            self.cap.release()
+            
+        self.video_writer = None
+        self.cap = None
+        
+        print("Stopped recording")
+        
+    def _record_video(self):
+        """Record video in separate thread"""
+        while self.is_recording and self.cap and self.video_writer:
+            ret, frame = self.cap.read()
+            if ret:
+                self.video_writer.write(frame)
+            else:
+                break
+                
+    def _update_preview(self):
+        """Update video preview in separate thread"""
+        while not self.stop_preview and self.cap:
+            ret, frame = self.cap.read()
+            if ret:
+                # Convert frame for tkinter
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_pil = Image.fromarray(frame_rgb)
+                frame_tk = ImageTk.PhotoImage(frame_pil)
+                
+                # Update preview in main thread
+                self.parent_app.root.after(0, self._update_preview_widget, frame_tk)
+            else:
+                break
+                
+    def _update_preview_widget(self, frame_tk):
+        """Update preview widget in main thread"""
+        if hasattr(self.parent_app, 'preview_label'):
+            self.parent_app.preview_label.configure(image=frame_tk)
+            self.parent_app.preview_label.image = frame_tk  # Keep reference
 
 def main():
     root = tk.Tk()
