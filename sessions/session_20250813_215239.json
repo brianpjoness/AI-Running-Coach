@@ -1,0 +1,57 @@
+{
+  "timestamp": "20250813_215239",
+  "recording_saved": false,
+  "timers": [
+    {
+      "name": "Timer 1",
+      "timer_id": 1,
+      "splits": [
+        {
+          "split_number": 1,
+          "time_seconds": 0.9896680000019842,
+          "time_formatted": "00:00.989"
+        },
+        {
+          "split_number": 2,
+          "time_seconds": 0.6815291999992041,
+          "time_formatted": "00:00.681"
+        },
+        {
+          "split_number": 3,
+          "time_seconds": 0.16760259999864502,
+          "time_formatted": "00:00.167"
+        },
+        {
+          "split_number": 4,
+          "time_seconds": 0.15529229999810923,
+          "time_formatted": "00:00.155"
+        },
+        {
+          "split_number": 5,
+          "time_seconds": 0.3411734000001161,
+          "time_formatted": "00:00.341"
+        },
+        {
+          "split_number": 6,
+          "time_seconds": 0.1890849999981583,
+          "time_formatted": "00:00.189"
+        },
+        {
+          "split_number": 7,
+          "time_seconds": 0.17115240000202903,
+          "time_formatted": "00:00.171"
+        },
+        {
+          "split_number": 8,
+          "time_seconds": 1.7404578999994555,
+          "time_formatted": "00:01.740"
+        },
+        {
+          "split_number": 9,
+          "time_seconds": 4.412152199998673,
+          "time_formatted": "00:04.412"
+        }
+      ]
+    }
+  ]
+}

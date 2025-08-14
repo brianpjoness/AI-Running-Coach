@@ -120,7 +120,7 @@ class Timer:
         # Stop split timer if it's running
         if self.is_split_running:
             self.stop_split()
-        
+            
     def toggle_split(self):
         if not self.is_split_running:
             self.start_split()
@@ -219,6 +219,9 @@ class MultiTimerApp:
         # Add the first timer
         self.add_timer()
         
+        # Bind keyboard shortcuts
+        self.root.bind('<KeyRelease>', self.on_key_release)
+        
         # Bind window close event
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         
@@ -235,13 +238,17 @@ class MultiTimerApp:
         self.add_button = ttk.Button(controls_frame, text="+", command=self.add_timer, width=3)
         self.add_button.grid(row=0, column=0, padx=(0, 10))
         
+        # Start all timers button
+        self.start_all_button = ttk.Button(controls_frame, text="▶▶", command=self.start_all_timers, width=5)
+        self.start_all_button.grid(row=0, column=1, padx=(0, 10))
+        
         # Timer count label
         self.timer_count_label = ttk.Label(controls_frame, text="Timers: 1/10")
-        self.timer_count_label.grid(row=0, column=1, padx=(0, 20))
+        self.timer_count_label.grid(row=0, column=2, padx=(0, 20))
         
         # Video controls
         video_controls_frame = ttk.LabelFrame(controls_frame, text="Video Recording", padding="5")
-        video_controls_frame.grid(row=0, column=2, padx=(0, 10))
+        video_controls_frame.grid(row=0, column=3, padx=(0, 10))
         
         # Video recording button
         self.record_button = ttk.Button(video_controls_frame, text="🔴", command=self.toggle_recording, width=3)
@@ -250,6 +257,10 @@ class MultiTimerApp:
         # Recording status label
         self.recording_status = ttk.Label(video_controls_frame, text="●", foreground="red")
         self.recording_status.grid(row=0, column=1, padx=10)
+        
+        # Save button
+        self.save_button = ttk.Button(video_controls_frame, text="💾", command=self.save_session, width=3)
+        self.save_button.grid(row=0, column=2, padx=2)
         
         # Create left panel for timers
         left_panel = ttk.Frame(main_frame)
@@ -326,6 +337,112 @@ class MultiTimerApp:
             self.video_recorder.stop_recording()
             self.record_button.config(text="🔴")
             self.recording_status.config(text="●", foreground="gray")
+    
+    def start_all_timers(self):
+        """Start all timers simultaneously"""
+        for timer in self.timers:
+            if not timer.is_running:
+                timer.start_timer()
+    
+    def reset_all_timers(self):
+        """Reset all timers to their initial state"""
+        for timer in self.timers:
+            timer.reset_timer()
+    
+    def save_session(self):
+        """Save the current session including recording and split data"""
+        import json
+        from datetime import datetime
+        
+        # Create sessions directory if it doesn't exist
+        sessions_dir = "sessions"
+        if not os.path.exists(sessions_dir):
+            os.makedirs(sessions_dir)
+        
+        # Generate timestamp for the session
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Stop recording if it's currently active
+        recording_saved = False
+        if self.video_recorder.is_recording:
+            self.video_recorder.stop_recording()
+            self.record_button.config(text="🔴")
+            self.recording_status.config(text="●", foreground="gray")
+            recording_saved = True
+            print(f"Recording stopped and saved for session: {timestamp}")
+        
+        # Prepare split data
+        session_data = {
+            "timestamp": timestamp,
+            "recording_saved": recording_saved,
+            "timers": []
+        }
+        
+        # Collect data from each timer
+        for timer in self.timers:
+            timer_data = {
+                "name": timer.name_var.get().strip(),
+                "timer_id": timer.timer_id,
+                "splits": []
+            }
+            
+            # Add split times
+            for i, split_time in enumerate(timer.splits, 1):
+                minutes = int(split_time // 60)
+                seconds = int(split_time % 60)
+                milliseconds = int((split_time % 1) * 1000)
+                time_str = f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+                
+                timer_data["splits"].append({
+                    "split_number": i,
+                    "time_seconds": split_time,
+                    "time_formatted": time_str
+                })
+            
+            session_data["timers"].append(timer_data)
+        
+        # Save session data to JSON file
+        session_file = os.path.join(sessions_dir, f"session_{timestamp}.json")
+        try:
+            with open(session_file, 'w') as f:
+                json.dump(session_data, f, indent=2)
+            print(f"Session data saved to: {session_file}")
+            
+            # Show success message
+            self.show_save_message(f"Session saved successfully!\nRecording: {'Yes' if recording_saved else 'No'}\nData: {session_file}")
+            
+        except Exception as e:
+            print(f"Error saving session data: {e}")
+            self.show_save_message("Error saving session data!")
+    
+    def show_save_message(self, message):
+        """Show a temporary message about the save operation"""
+        # Create a simple popup message
+        popup = tk.Toplevel(self.root)
+        popup.title("Save Status")
+        popup.geometry("300x150")
+        popup.transient(self.root)
+        popup.grab_set()
+        
+        # Center the popup
+        popup.geometry("+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50))
+        
+        # Add message
+        msg_label = ttk.Label(popup, text=message, wraplength=250, justify="center")
+        msg_label.pack(expand=True, fill="both", padx=20, pady=20)
+        
+        # Auto-close after 3 seconds
+        popup.after(3000, popup.destroy)
+    
+    def on_key_release(self, event):
+        """Handle keyboard shortcuts"""
+        # Don't process shortcuts if focus is in an entry widget (typing timer names)
+        focused_widget = self.root.focus_get()
+        if isinstance(focused_widget, tk.Entry):
+            return
+            
+        if event.keysym == 'r':
+            self.reset_all_timers()
         
     def on_frame_configure(self, event=None):
         """Update canvas scroll region when frame size changes"""
@@ -532,20 +649,21 @@ class VideoRecorder:
         self.is_recording = False
         self.stop_preview = True
         
+        # Release video writer first to stop recording thread
+        if self.video_writer:
+            self.video_writer.release()
+            self.video_writer = None
+        
         # Wait for threads to finish
         if self.recording_thread:
             self.recording_thread.join(timeout=1)
         if self.preview_thread:
             self.preview_thread.join(timeout=1)
             
-        # Release resources
-        if self.video_writer:
-            self.video_writer.release()
+        # Release camera
         if self.cap:
             self.cap.release()
-            
-        self.video_writer = None
-        self.cap = None
+            self.cap = None
         
         print("Stopped recording")
         
@@ -553,8 +671,14 @@ class VideoRecorder:
         """Record video in separate thread"""
         while self.is_recording and self.cap and self.video_writer:
             ret, frame = self.cap.read()
-            if ret:
-                self.video_writer.write(frame)
+            if ret and self.video_writer is not None:
+                # Add timer overlays to the frame only if recording
+                frame_with_overlays = self._add_timer_overlays(frame)
+                try:
+                    self.video_writer.write(frame_with_overlays)
+                except:
+                    # Video writer was released, stop recording
+                    break
             else:
                 break
                 
@@ -563,8 +687,11 @@ class VideoRecorder:
         while not self.stop_preview and self.cap:
             ret, frame = self.cap.read()
             if ret:
+                # Add timer overlays to the preview frame only if recording
+                frame_with_overlays = self._add_timer_overlays(frame)
+                
                 # Convert frame for tkinter
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_rgb = cv2.cvtColor(frame_with_overlays, cv2.COLOR_BGR2RGB)
                 frame_pil = Image.fromarray(frame_rgb)
                 frame_tk = ImageTk.PhotoImage(frame_pil)
                 
@@ -573,6 +700,73 @@ class VideoRecorder:
             else:
                 break
                 
+    def _add_timer_overlays(self, frame):
+        """Add timer overlays to the video frame"""
+        # Create a copy of the frame to avoid modifying the original
+        frame_with_overlays = frame.copy()
+        
+        # Only add overlays if recording is active
+        if not self.is_recording:
+            return frame_with_overlays
+        
+        # Get active timers and their current times
+        active_timers = [timer for timer in self.parent_app.timers if timer.is_running]
+        
+        if not active_timers:
+            return frame_with_overlays
+            
+        # Find the timer with the longest elapsed time
+        longest_timer = max(active_timers, key=lambda t: time.perf_counter() - t.start_time)
+        
+        # Calculate current time for the longest timer
+        current_time = time.perf_counter() - longest_timer.start_time
+        
+        # Format time as MM:SS.mmm
+        minutes = int(current_time // 60)
+        seconds = int(current_time % 60)
+        milliseconds = int((current_time % 1) * 1000)
+        time_str = f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+        
+        # Get timer name
+        timer_name = longest_timer.get_display_name()
+        
+        # Create overlay text
+        overlay_text = f"{timer_name}: {time_str}"
+        
+        # Position for the timer (single overlay)
+        overlay_x = 10
+        overlay_y = 120  # Moved down to avoid top quarter
+        
+        # Add text overlay with background
+        self._add_text_overlay(frame_with_overlays, overlay_text, overlay_x, overlay_y)
+            
+        return frame_with_overlays
+        
+    def _add_text_overlay(self, frame, text, x, y):
+        """Add text overlay with background to the frame"""
+        # Font settings
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.7
+        thickness = 2
+        color = (255, 255, 255)  # White text
+        bg_color = (0, 0, 0)     # Black background
+        
+        # Get text size
+        (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+        
+        # Calculate background rectangle
+        padding = 5
+        rect_x1 = x - padding
+        rect_y1 = y - text_height - padding
+        rect_x2 = x + text_width + padding
+        rect_y2 = y + baseline + padding
+        
+        # Draw background rectangle
+        cv2.rectangle(frame, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
+        
+        # Draw text
+        cv2.putText(frame, text, (x, y), font, font_scale, color, thickness)
+        
     def _update_preview_widget(self, frame_tk):
         """Update preview widget in main thread"""
         if hasattr(self.parent_app, 'preview_label'):
